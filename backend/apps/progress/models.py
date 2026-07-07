@@ -1,3 +1,4 @@
+from __future__ import annotations
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
@@ -62,7 +63,6 @@ class UserBadge(models.Model):
         ]
 
 
-
 class XPEvent(models.Model):
     """Tracks XP changes for a user from various source actions."""
 
@@ -93,6 +93,56 @@ class XPEvent(models.Model):
     def __str__(self):
         return f"XPEvent(user={self.user.username}, source={self.source_type}, delta={self.xp_delta})"
 
+
+class LessonProgressSync(models.Model):
+    """Idempotency ledger for lesson progress sync requests.
+
+    Stores the result snapshot for a single (user, lesson, idempotency_key)
+    so that client retries or out-of-order delivery do not re-apply the
+    multiplier / side-effects.
+    """
+
+    objects = models.Manager()
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="lesson_progress_syncs",
+    )
+    lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name="progress_syncs",
+    )
+
+    idempotency_key = models.CharField(max_length=255)
+
+    # Snapshot of applied state
+    completed = models.BooleanField(default=False)
+    base_score = models.PositiveIntegerField(default=0)
+    multiplier_applied = models.FloatField(default=1.0)
+    score = models.PositiveIntegerField(default=0)
+
+    client_timestamp_ms = models.BigIntegerField(null=True, blank=True)
+
+    # When the server applied this sync item
+    server_updated_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "lesson", "idempotency_key"],
+                name="unique_user_lesson_sync_key",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["user", "lesson"], name="idx_lp_sync_user_lesson"),
+            models.Index(fields=["idempotency_key"], name="idx_lp_sync_key"),
+        ]
+
+
 class LessonProgress(models.Model):
     objects = models.Manager()
     organization = models.ForeignKey(
@@ -105,6 +155,7 @@ class LessonProgress(models.Model):
     base_score = models.PositiveIntegerField(default=0)
     multiplier_applied = models.FloatField(default=1.0)
     attempt_count = models.PositiveIntegerField(default=0)
+    attempt_count = models.IntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -225,7 +276,10 @@ class Certificate(models.Model):
         max_length=255, default="Open Source Contribution Course"
     )
     verification_hash = models.CharField(
-        max_length=64, unique=True, default=uuid.uuid4, db_index=True
+        max_length=64,
+        unique=True,
+        default=uuid.uuid4,
+        db_index=True,
     )
     issued_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -325,10 +379,7 @@ class PeerReview(models.Model):
 
 
 class StreakProfile(models.Model):
-    """
-    Tracks daily coding streaks for a user.
-    Updated via signals whenever a user completes an activity (Lesson, Exercise, etc.).
-    """
+    """Tracks daily coding streaks for a user."""
 
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="streak_profile"
@@ -347,6 +398,80 @@ class StreakProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.current_streak} day streak"
+
+
+class DailyActivity(models.Model):
+    """Deterministic ledger of meaningful user activity on a local date."""
+
+    class DoesNotExist(ObjectDoesNotExist):
+        pass
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="daily_activities"
+    )
+    date = models.DateField()
+    activity_type = models.CharField(max_length=64, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "date"], name="unique_user_daily_activity"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["user", "date"], name="idx_daily_activity_user_date"),
+            models.Index(fields=["-date"], name="idx_daily_activity_date_desc"),
+        ]
+
+    def __str__(self):
+        return f"DailyActivity(user={self.user_id}, date={self.date}, type={self.activity_type})"
+
+    @classmethod
+    def log_and_update_streak(
+        cls, *, user: User, date, activity_type: str | None = None
+    ):
+        """Create a DailyActivity row for (user, date) if missing, then update streak.
+
+        Returns (created: bool, streak_profile: StreakProfile).
+        """
+        from django.db import transaction
+
+        # Ensure deterministic behavior under concurrency.
+        with transaction.atomic():
+            obj, created = cls.objects.get_or_create(
+                user=user,
+                date=date,
+                defaults={"activity_type": activity_type},
+            )
+
+            streak_profile, _ = StreakProfile.objects.get_or_create(user=user)
+
+            if created:
+                yesterday = date - timezone.timedelta(days=1)
+                yesterday_exists = cls.objects.filter(
+                    user=user, date=yesterday
+                ).exists()
+
+                if yesterday_exists:
+                    streak_profile.current_streak = streak_profile.current_streak + 1
+                else:
+                    streak_profile.current_streak = 1
+
+                streak_profile.last_activity_date = date
+                streak_profile.longest_streak = max(
+                    streak_profile.longest_streak, streak_profile.current_streak
+                )
+                streak_profile.save(
+                    update_fields=[
+                        "current_streak",
+                        "longest_streak",
+                        "last_activity_date",
+                        "updated_at",
+                    ]
+                )
+
+            return created, streak_profile
 
 
 class LessonBookmark(models.Model):

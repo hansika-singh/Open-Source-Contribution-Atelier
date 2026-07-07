@@ -31,6 +31,7 @@ import { CollabPythonSandbox } from "../components/ui/CollabPythonSandbox";
 import { JSSandbox } from "../components/ui/JSSandbox";
 import { InteractiveDebugger } from "../components/ui/InteractiveDebugger";
 import { TextToSpeechControls } from "../components/ui/TextToSpeechControls";
+import { ReadingProgressTracker } from "../components/ui/ReadingProgressTracker";
 
 import {
   createInitialRepo,
@@ -520,6 +521,7 @@ export function LessonPage() {
             style={{ width: `${scrollProgress}%` }}
           />
         </div>
+        <ReadingProgressTracker lessonSlug={lesson.slug} containerSelector=".prose" />
 
         <div
           ref={mainContentRef}
@@ -793,6 +795,7 @@ export function LessonPage() {
                   {feedback === "error" && (
                     <div
                       role="alert"
+                      aria-live="assertive"
                       className="mt-6 text-red-700 font-bold bg-red-50 p-4 rounded-lg border-4 border-red-600"
                     >
                       ❌ The resolved output doesn't quite match what was
@@ -875,6 +878,7 @@ export function LessonPage() {
                     {feedback === "correct" && (
                       <div
                         role="status"
+                        aria-live="assertive"
                         className="text-green-700 font-bold bg-green-50 p-4 rounded-lg border-4 border-green-600 animate-bounce"
                       >
                         ✅ Correct! Progress synchronized to the Atelier server.
@@ -884,6 +888,7 @@ export function LessonPage() {
                     {feedback === "error" && (
                       <div
                         role="alert"
+                        aria-live="assertive"
                         className="text-red-700 font-bold bg-red-50 p-4 rounded-lg border-4 border-red-600"
                       >
                         ❌ Not quite. Command output did not match sandbox
@@ -1036,6 +1041,7 @@ export function LessonPage() {
               {helpRequestMutation.isError && (
                 <div
                   role="alert"
+                  aria-live="assertive"
                   className="text-red-700 text-xs font-black bg-red-50 p-2 rounded-lg border-2 border-red-700"
                 >
                   Couldn&apos;t submit request. Re-run backend server checks.

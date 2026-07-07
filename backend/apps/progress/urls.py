@@ -17,9 +17,12 @@ from .views import (
     PeerReviewView,
     QuizAttemptView,
     RecommendationsView,
+    UserProgressPDFExportView,
+    ReadingProgressView,
 )
 
 urlpatterns = [
+    path("export/pdf/", UserProgressPDFExportView.as_view(), name="export-pdf"),
     path("badges/", BadgeListView.as_view(), name="badges"),
     path("me/", MyProgressView.as_view(), name="my-progress"),
     path("bulk-sync/", BulkSyncProgressView.as_view(), name="bulk-sync"),
@@ -58,4 +61,5 @@ urlpatterns = [
         PeerReviewView.as_view(),
         name="peer-reviews",
     ),
+    path("reading-position/", ReadingProgressView.as_view(), name="reading-position"),
 ]
