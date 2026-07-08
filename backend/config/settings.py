@@ -264,6 +264,7 @@ GITHUB_APP={
     'WEBHOOK_SECRET': os.getenv('GITHUB_WEBHOOK_SECRET'),
 }
 GITHUB_INSTALLATION_ID = os.getenv("GITHUB_INSTALLATION_ID")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 # ── Discord Integration ────────────────────────────────────────────────────────
 # Discord webhook URL for achievement announcements
