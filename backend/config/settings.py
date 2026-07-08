@@ -1,11 +1,14 @@
 import os
 import sys
+import logging
 from datetime import timedelta
 from pathlib import Path
 from config.auth import JWT_CONFIG, TOKEN_BLACKLIST_ENABLED
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
+
+logger = logging.getLogger(__name__)
 
 TESTING = "test" in sys.argv or "pytest" in sys.modules
 
@@ -32,13 +35,10 @@ def load_dotenv(dotenv_path: Path) -> None:
 
 load_dotenv(BASE_DIR / ".env")
 
-print("DEBUG - DATABASE_URL present:", "DATABASE_URL" in os.environ)
+logger.debug("DATABASE_URL present: %s", "DATABASE_URL" in os.environ)
 if "DATABASE_URL" in os.environ:
-    print("DEBUG - DATABASE_URL length:", len(os.environ["DATABASE_URL"]))
-    print("DEBUG - DATABASE_URL prefix:", os.environ["DATABASE_URL"][:15])
-print("DEBUG - REDIS_URL present:", "REDIS_URL" in os.environ)
-if "REDIS_URL" in os.environ:
-    print("DEBUG - REDIS_URL prefix:", os.environ["REDIS_URL"][:15])
+    logger.debug("DATABASE_URL length: %d", len(os.environ["DATABASE_URL"]))
+logger.debug("REDIS_URL present: %s", "REDIS_URL" in os.environ)
 
 SECRET_KEY = os.getenv(
     "SECRET_KEY", "django-insecure-dev-key-not-for-production-use-32bytes!!"
