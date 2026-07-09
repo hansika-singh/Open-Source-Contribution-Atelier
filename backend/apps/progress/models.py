@@ -133,10 +133,12 @@ class LessonProgressSync(models.Model):
         default=0,
         validators=[
             MinValueValidator(0),
-            MaxValueValidator(1000) 
-        ]
+            MaxValueValidator(1000),
+        ],
+    )
 
     client_timestamp_ms = models.BigIntegerField(null=True, blank=True)
+
 
     # When the server applied this sync item
     server_updated_at = models.DateTimeField(null=True, blank=True)
