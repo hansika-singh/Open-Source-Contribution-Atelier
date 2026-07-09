@@ -130,7 +130,7 @@ export class VirtualFileSystem {
 
   static cp(state: VfsState, src: string, dest: string, recursive: boolean): VfsState {
     const srcResolved = this.resolvePath(state.cwd, src);
-    let destResolved = this.resolvePath(state.cwd, dest);
+    const destResolved = this.resolvePath(state.cwd, dest);
 
     const srcNode = this.getNode(state, srcResolved);
     if (!srcNode) throw new VfsError(`cp: ${src}: No such file or directory`);
@@ -166,7 +166,7 @@ export class VirtualFileSystem {
 
   static mv(state: VfsState, src: string, dest: string): VfsState {
     const srcResolved = this.resolvePath(state.cwd, src);
-    let destResolved = this.resolvePath(state.cwd, dest);
+    const destResolved = this.resolvePath(state.cwd, dest);
 
     const srcNode = this.getNode(state, srcResolved);
     if (!srcNode) throw new VfsError(`mv: ${src}: No such file or directory`);

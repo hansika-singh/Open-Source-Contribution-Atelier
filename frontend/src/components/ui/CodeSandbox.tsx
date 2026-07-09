@@ -175,7 +175,7 @@ export function CodeSandbox() {
 
   const runCode = async () => {
     setOutput([]);
-    let buildSucceeded = true;
+    const buildSucceeded = true;
 
     if (iframeRef.current) {
       const srcDoc = `

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../hooks/useAuth";
-import api from "../lib/api";
+import { fetchApi } from "../lib/api";
+
 
 
 interface Template {
@@ -19,8 +19,8 @@ interface Portfolio {
 }
 
 export default function PortfolioPage() {
-  const { user } = useAuth();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
@@ -40,15 +40,15 @@ export default function PortfolioPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [tplRes, portRes] = await Promise.all([
-        api.get("/portfolio/templates/"),
-        api.get("/portfolio/reports/"),
+      const [tplData, portData] = await Promise.all([
+        fetchApi("/portfolio/templates/"),
+        fetchApi("/portfolio/reports/"),
       ]);
-      setTemplates(tplRes.data);
-      if (tplRes.data.length > 0) {
-        setSelectedTemplate(tplRes.data[0].id);
+      setTemplates(tplData as any);
+      if ((tplData as any).length > 0) {
+        setSelectedTemplate((tplData as any)[0].id);
       }
-      setPortfolios(portRes.data);
+      setPortfolios(portData as any);
     } catch (error) {
       console.error("Error fetching portfolio data", error);
     } finally {
@@ -59,10 +59,13 @@ export default function PortfolioPage() {
   const handleGenerate = async () => {
     try {
       setGenerating(true);
-      await api.post("/portfolio/reports/generate/", {
-        format: selectedFormat,
-        template_id: selectedTemplate,
-        sections_included: sections,
+      await fetchApi("/portfolio/reports/generate/", {
+        method: "POST",
+        body: JSON.stringify({
+          format: selectedFormat,
+          template_id: selectedTemplate,
+          sections_included: sections,
+        }),
       });
       // Refresh list to show pending
       fetchData();
@@ -75,18 +78,15 @@ export default function PortfolioPage() {
 
   const handleDownload = async (id: string) => {
     try {
-      const res = await api.get(`/portfolio/reports/${id}/download/`);
-      if (res.data.download_url) {
-        window.open(res.data.download_url, "_blank");
+      const res: any = await fetchApi(`/portfolio/reports/${id}/download/`);
+      if (res.download_url) {
+        window.open(res.download_url, "_blank");
       }
     } catch (error) {
       console.error("Error downloading portfolio", error);
     }
   };
 
-  if (!user) {
-    return <div className="p-8">Please log in to generate a portfolio.</div>;
-  }
 
   if (loading) {
     return <div className="p-8">Loading...</div>;

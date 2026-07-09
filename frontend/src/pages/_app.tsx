@@ -1,5 +1,5 @@
 import React from "react";
-import type { AppProps } from "next/app";
+type AppProps = { Component: any; pageProps: any };
 import { QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { queryClient } from "../lib/queryClient";

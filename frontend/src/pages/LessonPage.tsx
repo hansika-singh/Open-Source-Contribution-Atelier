@@ -17,12 +17,8 @@ import { useUserProgress } from "../hooks/useUserProgress";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { fetchApi } from "../lib/api";
 import { Lesson, fetchLessonsApi, fetchLessonContent } from "../lib/lessons";
-import dynamic from "next/dynamic";
-
-const RichTextEditor = dynamic(
-  () =>
-    import("../components/ui/RichTextEditor").then((mod) => mod.RichTextEditor),
-  { ssr: false },
+const RichTextEditor = React.lazy(
+  () => import("../components/ui/RichTextEditor").then((mod) => ({ default: mod.RichTextEditor }))
 );
 
 const MarkdownRenderer = React.lazy(() =>
@@ -34,20 +30,12 @@ import { GitGraph } from "../components/ui/GitGraph";
 import { NotePanel } from "../components/ui/NotePanel";
 import { LessonFeedbackWidget } from "../components/ui/LessonFeedbackWidget";
 import { PythonSandbox } from "../components/ui/PythonSandbox";
-const CollabPythonSandbox = dynamic(
-  () =>
-    import("../components/ui/CollabPythonSandbox").then(
-      (mod) => mod.CollabPythonSandbox,
-    ),
-  { ssr: false },
+const CollabPythonSandbox = React.lazy(
+  () => import("../components/ui/CollabPythonSandbox").then((mod) => ({ default: mod.CollabPythonSandbox }))
 );
 import { JSSandbox } from "../components/ui/JSSandbox";
-const InteractiveDebugger = dynamic(
-  () =>
-    import("../components/ui/InteractiveDebugger").then(
-      (mod) => mod.InteractiveDebugger,
-    ),
-  { ssr: false },
+const InteractiveDebugger = React.lazy(
+  () => import("../components/ui/InteractiveDebugger").then((mod) => ({ default: mod.InteractiveDebugger }))
 );
 import { TextToSpeechControls } from "../components/ui/TextToSpeechControls";
 import { ReadingProgressTracker } from "../components/ui/ReadingProgressTracker";

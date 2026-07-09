@@ -4,10 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "export": "next export",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
