@@ -135,6 +135,7 @@ class LessonProgressSync(models.Model):
             MinValueValidator(0),
             MaxValueValidator(1000) 
         ]
+    )
 
     client_timestamp_ms = models.BigIntegerField(null=True, blank=True)
 
