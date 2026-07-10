@@ -624,3 +624,59 @@ class PeerReviewTests(APITestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Cannot review your own", response.data["error"])
+
+
+class BadgeEvaluatorTests(APITestCase):
+    """Tests for BadgeEvaluator daily streak badge logic."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="badgelearner", password="password123"
+        )
+
+    def test_streak_badge_not_awarded_for_non_consecutive_days(self):
+        from apps.progress.models import DailyActivity, UserBadge
+        from apps.progress.badge_evaluator import BadgeEvaluator
+        import datetime
+
+        # Create 7 non-consecutive login days (each 2 days apart)
+        base_date = datetime.date(2026, 7, 1)
+        for i in range(7):
+            DailyActivity.objects.create(
+                user=self.user,
+                date=base_date + datetime.timedelta(days=i * 2),
+                activity_type="login",
+            )
+
+        # Evaluate badges
+        BadgeEvaluator.evaluate(self.user)
+
+        # User should not have the 'streak-7' badge
+        has_streak_badge = UserBadge.objects.filter(
+            user=self.user, badge__slug="streak-7"
+        ).exists()
+        self.assertFalse(has_streak_badge)
+
+    def test_streak_badge_awarded_for_consecutive_days(self):
+        from apps.progress.models import DailyActivity, UserBadge
+        from apps.progress.badge_evaluator import BadgeEvaluator
+        import datetime
+
+        # Create 7 consecutive login days
+        base_date = datetime.date(2026, 7, 1)
+        for i in range(7):
+            DailyActivity.objects.create(
+                user=self.user,
+                date=base_date + datetime.timedelta(days=i),
+                activity_type="login",
+            )
+
+        # Evaluate badges
+        BadgeEvaluator.evaluate(self.user)
+
+        # User should have the 'streak-7' badge
+        has_streak_badge = UserBadge.objects.filter(
+            user=self.user, badge__slug="streak-7"
+        ).exists()
+        self.assertTrue(has_streak_badge)
+
