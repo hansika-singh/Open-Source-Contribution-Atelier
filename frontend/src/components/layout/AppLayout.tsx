@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Navigation } from "./Navigation";
 import { BadgeToastNotifier } from "../ui/BadgeToastNotifier";
 import { ScrollToTop } from "../ui/ScrollToTop";
+import { SessionTracker } from "../ui/SessionTracker";
 
 export function AppLayout() {
   const location = useLocation();
@@ -57,6 +58,7 @@ export function AppLayout() {
         </main>
         <BadgeToastNotifier />
         <ScrollToTop />
+        <SessionTracker />
       </div>
     </>
   );
