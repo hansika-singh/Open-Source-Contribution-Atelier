@@ -30,6 +30,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -204,7 +205,7 @@ class UserStatisticsView(APIView):
         request=UserLoginSchema,
         responses={
             200: OpenApiResponse(
-                description="Login successful", response=UserResponseSchema
+                description="Login successful", response=TokenObtainPairSerializer
             ),
             401: OpenApiResponse(description="Invalid credentials"),
         },
