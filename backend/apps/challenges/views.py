@@ -38,11 +38,15 @@ class SandboxExecutionView(APIView):
 
     # Allow both anonymous and authenticated users
     permission_classes = [AllowAny]
-
-    def post(self, request, *args, **kwargs):
+def post(self, request, *args, **kwargs):
         """
         Expected body: { "code": "...", "language": "python" }
-        Wire this to your actual sandbox execution logic.
+
+        Executes the submitted code using the same hardened execution engine
+        the WebSocket sandbox consumer uses (AST whitelist, memory/CPU
+        limits, subprocess isolation, timeouts, and concurrency limits —
+        see apps.sandbox.services.stream_python_execution and
+        apps.sandbox.resource_manager.ResourceManagementEngine).
         """
 
         code = request.data.get("code", "")
@@ -53,14 +57,69 @@ class SandboxExecutionView(APIView):
                 {"detail": "No code provided."}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        # TODO: replace with actual sandbox execution call
-        # result = execute_code(code=code, language=language)
-        # return Response(result, status=status.HTTP_200_OK)
+        if language != "python":
+            return Response(
+                {
+                    "detail": (
+                        f"Language '{language}' is not supported yet. "
+                        "Only 'python' is currently executable."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from asgiref.sync import async_to_sync
+
+        from apps.sandbox.services import stream_python_execution
+
+        if request.user and request.user.is_authenticated:
+            user_id = str(request.user.id)
+        else:
+            # Distinct anonymous identity per client, so the concurrency
+            # lock in ResourceManagementEngine doesn't conflate unrelated
+            # anonymous users under a single "anonymous" bucket.
+            user_id = f"anon:{request.META.get('REMOTE_ADDR', 'unknown')}"
+
+        events = []
+
+        async def send_callback(message_data):
+            events.append(message_data)
+
+        # stream_python_execution is async (it's shared with the WebSocket
+        # consumer); run it to completion synchronously for this HTTP view.
+        async_to_sync(stream_python_execution)(code, send_callback, user_id=user_id)
+
+        stdout = "".join(
+            e.get("output", "")
+            for e in events
+            if e.get("action") == "execution_output" and e.get("type") == "stdout"
+        )
+        stderr = "".join(
+            e.get("output", "")
+            for e in events
+            if e.get("action") == "execution_output" and e.get("type") == "stderr"
+        )
+
+        error_event = next(
+            (e for e in events if e.get("action") == "execution_error"), None
+        )
+        if error_event:
+            return Response(
+                {"detail": error_event.get("error", "Execution error.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        end_event = next(
+            (e for e in events if e.get("action") == "execution_end"), {}
+        )
 
         return Response(
             {
-                "detail": "Sandbox execution triggered.",
                 "language": language,
+                "stdout": stdout,
+                "stderr": stderr,
+                "status": end_event.get("status", "Unknown"),
+                "returncode": end_event.get("returncode"),
             },
             status=status.HTTP_200_OK,
         )
