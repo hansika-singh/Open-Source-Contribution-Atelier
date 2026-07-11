@@ -121,7 +121,7 @@ class MyProgressView(APIView):
                     multiplier=multiplier,
                     xp_delta=xp_delta,
                 )
-        except LessonProgress.DoesNotExist:
+except LessonProgress.DoesNotExist:
             progress = LessonProgress.objects.create(
                 user=request.user,
                 lesson=lesson,
@@ -131,16 +131,16 @@ class MyProgressView(APIView):
                 score=int(base_score * multiplier),
                 organization=request.user.organization,
             )
-                # Record XP event for new progress
-                XPEvent.objects.create(
-                    user=request.user,
-                    source_type="lesson",
-                    source_id=lesson.id,
-                    base_points=base_score,
-                    multiplier=multiplier,
-                    xp_delta=progress.score,
-                )
-                created = True
+            # Record XP event for new progress
+            XPEvent.objects.create(
+                user=request.user,
+                source_type="lesson",
+                source_id=lesson.id,
+                base_points=base_score,
+                multiplier=multiplier,
+                xp_delta=progress.score,
+            )
+            created = True
 
         from django_q.tasks import async_task
 
