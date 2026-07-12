@@ -121,13 +121,14 @@ export function DashboardPage() {
   const contributorError = null;
   const showOnboarding = false;
   const handleFinishOnboarding = () => {};
-  const completedLessonsCount = 0;
-  const totalLessonsCount = 0;
+  const completedLessonsCount: number = 0;
+  const totalLessonsCount: number = 0;
   const factOfDay = FACTS[Math.floor(Math.random() * FACTS.length)];
-  const completionPercentage = 0;
+  const completionPercentage: number = 0;
   const setShowCertificate = (_val: boolean) => {};
+  const showProgressReport = false;
   const setShowProgressReport = (_val: boolean) => {};
-  const learningPathData: {
+  const learningPathData = null as {
     next_step: {
       id: string;
       title: string;
@@ -137,7 +138,7 @@ export function DashboardPage() {
       lessons_count: number;
       explanation: string;
     };
-  } | null = null;
+  } | null;
   const activeLessonsQueue: Lesson[] = [];
   const bookmarks: {
     lesson_slug: string;
@@ -148,10 +149,10 @@ export function DashboardPage() {
   const toggleBookmark = { mutate: (_args: { slug: string; isBookmarked: boolean }) => {} };
   const earnedBadges: string[] = [];
   const gitHubContributors: GitHubContributor[] = [];
-  const onboardingStep = 0;
+  const onboardingStep: number = 0;
   const setOnboardingStep = (_fn: ((prev: number) => number) | number) => {};
   const showCertificate = false;
-  const certificateData: { certificate: { verification_hash: string; issued_at: string } } | null = null;
+  const certificateData = null as { certificate: { verification_hash: string; issued_at: string } } | null;
 
   if (user?.is_staff) {
     return (

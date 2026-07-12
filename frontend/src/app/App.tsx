@@ -141,7 +141,7 @@ export function App() {
               <ScrollToTop />
               <CommandPalette />
               <ReportIssueButton />
-              <WebSocketStatusIndicator />
+              <WebSocketStatusIndicator url="" />
 
               {/* Pure React Onboarding Modals Highlight Tour Overlay Portal */}
               {currentStep >= 0 && coords && (

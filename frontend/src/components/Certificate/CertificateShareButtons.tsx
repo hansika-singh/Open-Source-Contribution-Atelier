@@ -138,7 +138,7 @@ export const CertificateShareButtons: React.FC<CertificateShareButtonsProps> = (
         </button>
 
         {/* Share Button (Mobile - Web Share API) */}
-        {navigator.share && (
+        {typeof navigator.share === 'function' && (
           <button
             onClick={handleShare}
             className="

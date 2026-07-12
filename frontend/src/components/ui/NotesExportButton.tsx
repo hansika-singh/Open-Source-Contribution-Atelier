@@ -23,14 +23,14 @@ export const NotesExportButton: React.FC<NotesExportButtonProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { getAccessToken } = useAuth();
+  const { user } = useAuth();
 
   const handleExport = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const token = await getAccessToken();
+      const token = "";
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/progress/notes/export/?format=${format}`,
         {

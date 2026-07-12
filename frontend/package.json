@@ -64,6 +64,7 @@
     "pyodide": "^314.0.2",
     "randomcolor": "^0.6.2",
     "react": "^19.0.0",
+    "react-confetti": "^6.4.0",
     "react-diff-viewer-continued": "^3.4.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.80.0",

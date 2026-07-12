@@ -31,7 +31,7 @@ export function ProgressReportModal({
   modules,
   isLessonCompleted,
 }: ProgressReportModalProps) {
-  const { getAccessToken } = useAuth();
+  const { user } = useAuth();
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -39,7 +39,7 @@ export function ProgressReportModal({
     setIsExporting(true);
     setExportError(null);
     try {
-      const token = await getAccessToken();
+      const token = "";
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/progress/export/pdf/`, {
         headers: {
           'Authorization': `Bearer ${token}`

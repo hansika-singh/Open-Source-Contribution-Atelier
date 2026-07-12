@@ -98,7 +98,7 @@ export function useWebSocketWithBackoff(
     setStatus('reconnecting');
     
     clearReconnectTimer();
-    reconnectTimerRef.current = setTimeout(() => {
+    reconnectTimerRef.current = window.setTimeout(() => {
       if (isMountedRef.current && !isManualDisconnectRef.current) {
         connectWebSocket();
       }

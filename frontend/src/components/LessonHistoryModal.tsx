@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactDiffViewer from "react-diff-viewer-continued";
 import { format } from "date-fns";
 import { X, History } from "lucide-react";
-import { api } from "../lib/api";
+import { fetchApi } from "../lib/api";
 
 interface LessonVersion {
   id: number;
@@ -25,14 +25,14 @@ export function LessonHistoryModal({ lessonId, currentContent, onClose }: Lesson
   useEffect(() => {
     setLoading(true);
     // Fetch versions from our new endpoint
-    api.get(`/content/lessons/${lessonId}/versions/`)
-      .then((res) => {
+    fetchApi(`/content/lessons/${lessonId}/versions/`)
+      .then((res: { data: LessonVersion[] }) => {
         setVersions(res.data);
         if (res.data.length > 0) {
           setSelectedVersionId(res.data[0].id);
         }
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error("Failed to load lesson versions", err);
       })
       .finally(() => {

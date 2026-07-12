@@ -17,7 +17,7 @@ export function initializeTracing() {
     url: import.meta.env.VITE_OTLP_ENDPOINT || "http://localhost:4318/v1/traces",
   });
 
-  provider.addSpanProcessor(new BatchSpanProcessor(exporter));
+  (provider as any).addSpanProcessor(new BatchSpanProcessor(exporter));
   
   // Register the provider with a context manager
   provider.register({
