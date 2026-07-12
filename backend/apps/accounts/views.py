@@ -589,8 +589,8 @@ class OtpVerifyView(APIView):
                 {"error": "invalid_otp"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        token = OTPToken.objects.filter(user=user, token=otp, is_used=False).first()
-        if not token:
+token = OTPToken.objects.filter(user=user, token=otp, is_used=False).first()
+        if not token or token.is_expired():
             return Response(
                 {"error": "invalid_otp"}, status=status.HTTP_400_BAD_REQUEST
             )
