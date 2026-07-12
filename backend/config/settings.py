@@ -191,6 +191,7 @@ INSTALLED_APPS = [
     "apps.portfolio",
     "apps.feature_flags",
     "apps.issues",
+    "apps.gamification",
     "django_q",
     "waffle",
 ]

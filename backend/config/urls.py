@@ -34,6 +34,7 @@ urlpatterns = [
     path("api/progress/", include("apps.progress.urls")),
     path("api/challenges/", include("apps.challenges.urls")),
     path("api/sandbox/", include("apps.sandbox.urls")),
+    path("api/gamification/", include("apps.gamification.urls")),
     # ── Notifications & Real-time ─────────────────────────────────────────────
     path("api/notifications/", include("apps.notifications.urls")),
     path("api/dashboard/", include("apps.dashboard.urls")),
