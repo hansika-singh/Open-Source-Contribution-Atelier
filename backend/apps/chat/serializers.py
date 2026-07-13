@@ -36,6 +36,11 @@ class ChatRoomSerializer(serializers.Serializer):
     participant_count = serializers.IntegerField(
         help_text="Number of distinct users who have sent messages in this room."
     )
+    dm_user = serializers.CharField(
+        required=False,
+        allow_null=True,
+        help_text="The username of the other participant if this is a DM room.",
+    )
 
     class Meta:
         ref_name = "ChatRoom"

@@ -1,4 +1,7 @@
 import { useEffect, useRef } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { fetchApi } from "../lib/api";
 import { useAuth } from "../features/auth/AuthContext";
 import { useChat } from "../hooks/useChat";
 import { ChatMessage } from "../components/chat/ChatMessage";
@@ -45,8 +48,17 @@ export function ChatPage() {
   const { user } = useAuth();
   const token = getAccessToken();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
-  const roomId = "general";
+  const { roomId: paramRoomId } = useParams<{ roomId?: string }>();
+  const roomId = paramRoomId || "general";
+
+  const { data: rooms = [] } = useQuery({
+    queryKey: ["chatRooms"],
+    queryFn: () => fetchApi("/chat/rooms/"),
+  });
+
+  const dmRooms = rooms.filter((r: any) => r.room_id.startsWith("dm_"));
 
   const {
     messages,
@@ -80,12 +92,37 @@ export function ChatPage() {
             <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2">
               Rooms
             </span>
-            <div className="mt-1.5">
-              <button className="w-full flex items-center gap-2 px-3 py-2 bg-[#C3C0FF]/15 text-[#8884d8] font-bold text-xs rounded-xl transition-all">
+            <div className="mt-1.5 space-y-1">
+              <Link 
+                to="/chat/general"
+                className={`w-full flex items-center gap-2 px-3 py-2 ${roomId === "general" ? "bg-[#C3C0FF]/15 text-[#8884d8]" : "text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5"} font-bold text-xs rounded-xl transition-all`}
+              >
                 <Hash size={14} /> general
-              </button>
+              </Link>
             </div>
           </div>
+
+          {dmRooms.length > 0 && (
+            <div className="p-3 pt-0">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2">
+                Direct Messages
+              </span>
+              <div className="mt-1.5 space-y-1">
+                {dmRooms.map((room: any) => (
+                  <Link 
+                    key={room.room_id}
+                    to={`/chat/${room.room_id}`}
+                    className={`w-full flex items-center gap-2 px-3 py-2 ${roomId === room.room_id ? "bg-[#C3C0FF]/15 text-[#8884d8]" : "text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5"} font-bold text-xs rounded-xl transition-all`}
+                  >
+                    <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] uppercase ${getAvatarColor(room.dm_user || "?")}`}>
+                      {getInitials(room.dm_user || "?")}
+                    </div>
+                    {room.dm_user || "Unknown"}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Online Members List */}
           <div className="flex-1 flex flex-col min-h-0 p-3 pt-1 border-t border-black/5 dark:border-white/5 mt-2">
@@ -96,7 +133,13 @@ export function ChatPage() {
               {onlineUsers.map((member) => (
                 <div
                   key={member.user_id}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                  onClick={() => {
+                    if (!user || user.id === member.user_id) return;
+                    const min = Math.min(user.id, member.user_id);
+                    const max = Math.max(user.id, member.user_id);
+                    navigate(`/chat/dm_${min}_${max}`);
+                  }}
+                  className={`flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors ${user?.id !== member.user_id ? "hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer" : "opacity-75"}`}
                 >
                   {/* Status avatar */}
                   <div className="relative">
@@ -108,7 +151,7 @@ export function ChatPage() {
                     <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 border border-white dark:border-slate-900 rounded-full" />
                   </div>
                   <span className="text-xs font-bold text-slate-700 dark:text-[#a0a0ab] truncate">
-                    @{member.username}
+                    @{member.username} {user?.id === member.user_id && "(You)"}
                   </span>
                 </div>
               ))}
@@ -121,9 +164,15 @@ export function ChatPage() {
           {/* Channel Header */}
           <div className="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10 mb-4 flex-shrink-0">
             <div className="flex items-center gap-2">
-              <Hash size={18} className="text-slate-400 dark:text-slate-500" />
+              {roomId.startsWith("dm_") ? (
+                <div className="w-5 h-5 rounded-full flex items-center justify-center font-black text-[8px] bg-indigo-500 text-white uppercase">
+                  DM
+                </div>
+              ) : (
+                <Hash size={18} className="text-slate-400 dark:text-slate-500" />
+              )}
               <h2 className="text-lg font-black text-slate-800 dark:text-white">
-                general
+                {roomId.startsWith("dm_") ? "Direct Message" : roomId}
               </h2>
             </div>
             <div className="flex items-center gap-1.5">
@@ -140,7 +189,7 @@ export function ChatPage() {
           <div className="flex-1 overflow-y-auto min-h-0 space-y-3 px-1 mb-3 custom-scrollbar">
             {messages.length === 0 && (
               <p className="text-center text-xs text-slate-400 py-12">
-                No messages in #general yet. Say hello! 👋
+                No messages in {roomId.startsWith("dm_") ? "this DM" : `#${roomId}`} yet. Say hello! 👋
               </p>
             )}
             {messages.map((msg) => (

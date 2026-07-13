@@ -114,5 +114,23 @@ class ChatRoomListView(APIView):
             .order_by("-last_message_at")
         )
 
-        serializer = ChatRoomSerializer(rooms, many=True)
+        room_list = list(rooms)
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+
+        for r in room_list:
+            if r["room_id"].startswith("dm_"):
+                parts = r["room_id"].split("_")
+                if len(parts) == 3:
+                    try:
+                        u1, u2 = int(parts[1]), int(parts[2])
+                        other_id = u2 if u1 == request.user.id else u1
+                        other_user = User.objects.filter(id=other_id).first()
+                        if other_user:
+                            r["dm_user"] = other_user.username
+                    except ValueError:
+                        pass
+
+        serializer = ChatRoomSerializer(room_list, many=True)
         return Response(serializer.data)

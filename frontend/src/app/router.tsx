@@ -296,7 +296,7 @@ export function AppRouter() {
           />
 
           <Route
-            path="/chat"
+            path="/chat/:roomId?"
             element={
               <ProtectedRoute>
                 <ChatPage />
