@@ -53,7 +53,7 @@ urlpatterns = [
     path("api/organizations/", include("apps.organizations.urls")),
     # ── Events & GraphQL ──────────────────────────────────────────────────────
     # path("api/events/", include("apps.events.urls")),
-    # path("api/graphql/", include("apps.graphql_gateway.urls")),
+    path("api/graphql/", include("apps.graphql_gateway.urls")),
     path("api/graphql/legacy/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
     # ── API Documentation ──────────────────────────────────────────────────────
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

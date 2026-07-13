@@ -15,6 +15,24 @@ logger = logging.getLogger(__name__)
 
 TESTING = "test" in sys.argv or "pytest" in sys.modules
 
+# Patch Django template context copy for Python 3.14 compatibility
+import copy
+from django.template.context import BaseContext
+
+
+def safe_context_copy(self):
+    cls = self.__class__
+    new_context = cls.__new__(cls)
+    for k, v in self.__dict__.items():
+        if k == "dicts":
+            new_context.dicts = self.dicts[:]
+        else:
+            setattr(new_context, k, copy.copy(v))
+    return new_context
+
+
+BaseContext.__copy__ = safe_context_copy
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 

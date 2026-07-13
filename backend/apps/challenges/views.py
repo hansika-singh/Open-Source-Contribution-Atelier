@@ -55,7 +55,7 @@ class SandboxExecutionView(APIView):
 
     # Allow both anonymous and authenticated users
     permission_classes = [AllowAny]
-def post(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         """
         Expected body: { "code": "...", "language": "python" }
 
