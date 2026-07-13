@@ -178,6 +178,7 @@ INSTALLED_APPS = [
     "apps.content",
     "apps.progress",
     "apps.challenges",
+    "apps.accessibility",
     "apps.sandbox",
     "apps.organizations",
     "apps.webhooks",
