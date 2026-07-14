@@ -24,9 +24,9 @@ def invalidate_tokens_on_password_change(sender, instance, **kwargs):
         # Check if password has changed
         if old_user.password != instance.password:
             # Increment token version in user profile
-            if hasattr(instance, 'profile') and instance.profile:
-                instance.profile.jwt_token_version += 1
-                instance.profile.last_password_change = timezone.now()
+            if hasattr(instance, 'user_profile') and instance.user_profile:
+                instance.user_profile.jwt_token_version += 1
+                instance.user_profile.last_password_change = timezone.now()
                 # We'll save it after the user save
                 # Store a flag to save profile later
                 instance._token_invalidated = True
@@ -51,7 +51,7 @@ def save_profile_on_password_change(sender, instance, created, **kwargs):
     Save profile after user save if token was invalidated.
     """
     if not created and hasattr(instance, '_token_invalidated') and instance._token_invalidated:
-        if hasattr(instance, 'profile') and instance.profile:
-            instance.profile.save(update_fields=['jwt_token_version', 'last_password_change'])
+        if hasattr(instance, 'user_profile') and instance.user_profile:
+            instance.user_profile.save(update_fields=['jwt_token_version', 'last_password_change'])
             logger.info(f"Profile saved for user {instance.username} after token invalidation")
         instance._token_invalidated = False

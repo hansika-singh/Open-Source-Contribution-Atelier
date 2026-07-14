@@ -48,8 +48,8 @@ class DynamicSaltAccessToken(AccessToken):
     @staticmethod
     def _get_token_version(user: User) -> int:
         """Get the token version from user profile."""
-        if hasattr(user, "profile") and user.profile:
-            return user.profile.jwt_token_version
+        if hasattr(user, "user_profile") and user.user_profile:
+            return user.user_profile.jwt_token_version
         return 1
 
     def verify(self):
